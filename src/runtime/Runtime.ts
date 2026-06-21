@@ -7,13 +7,26 @@ import {Thread} from './Thread.ts';
 import {stepThread} from './Sequencer.ts';
 import {BlockRunner} from './BlockRunner.ts';
 import {startHats, type HatMatch} from './EventBus.ts';
+import type {RendererPort, DrawableState} from '../render/RendererPort.ts';
+import type {InputPort} from '../input/InputPort.ts';
 
 /** Safety valve against pathological cross-thread cascades within one tick. */
 export const MAX_TICK_PASSES = 1000;
 
+/** Fixed placement state used for the Stage's own DrawableState (per SCRATCH_RENDER_SPEC: Stage has no coordinate/direction fields). */
+const STAGE_DRAWABLE_DEFAULTS = Object.freeze({
+    x: 0,
+    y: 0,
+    size: 100,
+    direction: 90,
+    rotationStyle: 'all around' as const
+});
+
 export interface RuntimeOptions {
     clock?: ClockPort;
     random?: RandomPort;
+    renderer?: RendererPort;
+    input?: InputPort;
 }
 
 /**
@@ -26,6 +39,8 @@ export class Runtime {
     readonly clock: ClockPort;
     readonly random: RandomPort;
     readonly blockRunner: BlockRunner;
+    readonly renderer?: RendererPort;
+    readonly input?: InputPort;
     threads: Thread[] = [];
     currentMSecs = 0;
 
@@ -33,6 +48,8 @@ export class Runtime {
         this.clock = options.clock ?? new SystemClockPort();
         this.random = options.random ?? new SystemRandomPort();
         this.blockRunner = new BlockRunner(this);
+        this.renderer = options.renderer;
+        this.input = options.input;
     }
 
     /** Attaches the project model. Block indices already live on BlockContainer, so this is a direct assignment. */
@@ -109,5 +126,44 @@ export class Runtime {
             }
             this.threads = this.threads.filter(thread => thread.status !== 'DONE');
         }
+
+        if (this.renderer) {
+            this.renderer.renderDrawables(this.collectDrawableStates());
+        }
+    }
+
+    /** Builds the per-tick DrawableState snapshot (stage + every sprite) handed to the RendererPort, if any. */
+    private collectDrawableStates(): DrawableState[] {
+        const states: DrawableState[] = [
+            {
+                targetId: this.project.stage.id,
+                isStage: true,
+                x: STAGE_DRAWABLE_DEFAULTS.x,
+                y: STAGE_DRAWABLE_DEFAULTS.y,
+                size: STAGE_DRAWABLE_DEFAULTS.size,
+                direction: STAGE_DRAWABLE_DEFAULTS.direction,
+                visible: true,
+                rotationStyle: STAGE_DRAWABLE_DEFAULTS.rotationStyle,
+                layerOrder: this.project.stage.layerOrder,
+                costumeIndex: this.project.stage.currentCostume
+            }
+        ];
+
+        for (const sprite of this.project.sprites) {
+            states.push({
+                targetId: sprite.id,
+                isStage: false,
+                x: sprite.x,
+                y: sprite.y,
+                size: sprite.size,
+                direction: sprite.direction,
+                visible: sprite.visible,
+                rotationStyle: sprite.rotationStyle,
+                layerOrder: sprite.layerOrder,
+                costumeIndex: sprite.currentCostume
+            });
+        }
+
+        return states;
     }
 }
