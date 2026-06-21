@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 HTML/CSS/JavaScript 上に「疑似 Scratch 3.0 基盤」(Runtime / Editor shell / Asset 管理 / `.sb3` 生成) を、Scratch の完全コピーではなく構造的に近い形で段階的に構築する。仕様の出所は `req.txt`(製品要件)と `docs/IMPLEMENTATION_ROADMAP.md`(Phase 0〜8 のロードマップ)。
 
-**Phase 0〜5 が完了済み(次は Phase 6)。** Phase 0=検証専用 DSL 基盤(`src/validation`・`src/blocks`・`src/cast`・`src/model/id.ts`)、Phase 1=ドメインモデル層(`src/model/`)、Phase 2=headless 実行エンジン(`src/runtime/`)、Phase 3=Canvas 2D 描画と DOM 入力(`src/render/`・`src/input/`)、Phase 4=asset 管理と簡易音声(`src/assets/`・`src/audio/`)、Phase 5=clone/procedure/pen/monitor(`src/runtime/` の各 Manager と `src/model/Clone.ts`)。Phase 6 は DSL→project.json・ZIP・公式 VM 再読込。`docs/IMPLEMENTATION_ROADMAP.md` に従い、**依頼されない限り後続 Phase を先取り実装しない**(1リクエスト=1 Phase が運用ルール)。各 Phase の詳細仕様は `docs/SCRATCH_*_SPEC.md`。
+**Phase 0〜6 が完了済み(次は Phase 7)。** Phase 0=検証専用 DSL 基盤(`src/validation`・`src/blocks`・`src/cast`・`src/model/id.ts`)、Phase 1=ドメインモデル層(`src/model/`)、Phase 2=headless 実行エンジン(`src/runtime/`)、Phase 3=Canvas 2D 描画と DOM 入力(`src/render/`・`src/input/`)、Phase 4=asset 管理と簡易音声(`src/assets/`・`src/audio/`)、Phase 5=clone/procedure/pen/monitor(`src/runtime/` の各 Manager と `src/model/Clone.ts`)、Phase 6=検証済み DSL→project.json serializer・ZIP/SB3 packager・公式 parser 再読込(`src/sb3/`)。`docs/IMPLEMENTATION_ROADMAP.md` に従い、**依頼されない限り後続 Phase を先取り実装しない**(1リクエスト=1 Phase が運用ルール)。各 Phase の詳細仕様は `docs/SCRATCH_*_SPEC.md`。
 
 ## ビルド・テスト・開発コマンド
 
-ソース本体にビルド工程は無く、Node.js 22+ が type stripping で TypeScript を直接実行する(検証時の実機: v22.17.0)。Phase 3 で `package.json` を導入(`devDependencies` は Playwright/esbuild のみ。`node_modules` は gitignore 済み、`npm install` が必要)。
+ソース本体にビルド工程は無く、Node.js 22+ が type stripping で TypeScript を直接実行する(検証時の実機: v22.17.0)。Phase 3 で `package.json` を導入し、Phase 6 で生成 SB3 を公式 parser 経由で再読込する互換テスト用に `scratch-parser` を devDependency へ追加した(他は Playwright/esbuild。`node_modules` は gitignore 済み、`npm install` が必要)。
 
 ```powershell
-# unit テスト一式 (node:test、DOM 非依存。validation/model/runtime/render/input/assets/audio)
+# unit テスト一式 (node:test、DOM 非依存。validation/model/runtime/render/input/assets/audio/sb3/compatibility)
 npm test
 
 # 単一テストファイル
@@ -62,6 +62,13 @@ DSL 構造を変えるときは **`schemas/project.schema.json` と手書き val
 - **procedure**: `procedures_call` は引数を呼び出し側で評価してから procedure frame(`StackFrame.params`)へ束縛し、本体(`procedures_definition` の `next`)を push する。`argument_reporter_*` は `Thread.getParam` で procedure 境界(`params` を持つ最も内側の frame)まで遡って解決。**warp** は `StackFrame.warpMode` を frame へ継承し、Sequencer がループ枠 exhausted 時の tick 境界 yield をスキップする。`wait`/promise 待ち/`broadcastandwait` は status を直接設定して return するため warp でも無視されない。`procedures_call` の引数入力は動的キー(argument id)なので metadata 未宣言で `opcode.input-unknown` warning になる(設計どおり)。
 - **pen**: 状態(down/color/size)は `PenManager`(DOM 非依存、clone 時複製)。実描画は `RendererPort` の **任意メソッド**(`penClear`/`penPoint`/`penLine`/`penStamp`)越しで、`CanvasRenderer` が独立オフスクリーン canvas に background→pen→sprite の順で合成する。Runtime/primitives は port のみに依存し Canvas を直接触らない。
 - **monitor**: `MonitorManager` が variable/list monitor の表示状態を管理(monitor id に変数/リスト id をキーを用いる)。DOM overlay としての monitor 描画は GUI 層の責務で現状は範囲外。
+
+### SB3 serializer / packager(Phase 6)
+
+- `src/sb3/projectSerializer.ts` は **検証済み `DslProject`** を入力に Stage→original sprite の順で `project.json` 形式へ変換する。Runtime 状態を入力にせず、Runtime にだけ存在する clone 個体は保存しない。
+- `blockSerializer.ts` は block/variable/list/broadcast ID を再採番せず、公式の compact primitive input と procedure mutation の文字列表現へ正規化する。
+- `assetCollector.ts` / `extensionCollector.ts` は参照 asset と extension ID を収集し、`sb3Packager.ts` は `project.json` と全参照 asset を `zip.ts` の STORE 方式 ZIP に格納する。costume のない target には実体付き placeholder SVG を補う。
+- `tests/compatibility/sb3Reload.test.ts` は devDependency の `scratch-parser` を使い、生成した `.sb3` を公式 schema/parser 経由で再読込する。serializer/packager に Runtime 依存を追加しない。
 
 ### 設計上の不変条件
 

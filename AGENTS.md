@@ -3,8 +3,9 @@
 ## Project Structure & Module Organization
 
 This repository implements a staged Scratch-compatible DSL foundation. Phases
-0–5 are complete; Phase 6 (DSL → project.json, ZIP packaging, and re-import
-into the official VM) is next.
+0–6 are complete; Phase 7 (the minimal editor shell) is next. Phase 6 added
+DSL → project.json serialization, ZIP/SB3 packaging, and official-parser
+re-import compatibility coverage.
 
 - `src/`: TypeScript implementation.
   - `blocks/`: opcode metadata (P0 plus the Phase 5 P1 clone/procedure/pen/monitor opcodes).
@@ -16,9 +17,10 @@ into the official VM) is next.
   - `input/`: input port, DOM input manager, and key normalization.
   - `assets/`: asset manager, md5, and asset reference validation.
   - `audio/`: audio ports, sound manager/bank/player, and the Web Audio adapter.
+  - `sb3/`: validated-DSL serializer, asset/extension collection, ZIP writer, and SB3 packager.
 - `schemas/`: JSON Schema definitions, currently `project.schema.json`.
 - `tests/fixtures/`: valid and intentionally invalid DSL projects.
-- `tests/{validation,model,runtime,render,input}/`: DOM-free Node test suites.
+- `tests/{validation,model,runtime,render,input,assets,audio,sb3,compatibility}/`: DOM-free Node test suites.
 - `tests/e2e/`: Playwright browser integration tests and their local harness.
 - `docs/`: architecture, runtime, block, asset, SB3, and roadmap specifications.
 - `scratch-editor/` and `scratch-audio/`: pinned upstream reference checkouts. Treat these as read-only research sources unless a task explicitly targets them.
@@ -28,7 +30,7 @@ requested; one requested phase should remain one scoped change.
 
 ## Build, Test, and Development Commands
 
-Node.js 22+ runs TypeScript through type stripping (no build step for the source itself). A root `package.json` was added in Phase 3 with Playwright/esbuild as the only devDependencies (`node_modules` is gitignored; run `npm install` first).
+Node.js 22+ runs TypeScript through type stripping (no build step for the source itself). A root `package.json` was added in Phase 3. Its devDependencies are Playwright, esbuild, and `scratch-parser`; the latter verifies that generated SB3 archives reload through the official parser (`node_modules` is gitignored; run `npm install` first).
 
 Unit tests (node:test, DOM-free):
 
@@ -60,6 +62,10 @@ DOM, Canvas, Web Audio, and ZIP libraries. Runtime may depend only on the
 `RendererPort` (including its optional pen methods), `InputPort`, and
 `RuntimeAudioPort` interfaces, never their Canvas/DOM/Web Audio
 implementations.
+
+SB3 serialization must continue to consume a validated `DslProject`, not
+Runtime state. Runtime-only clones are intentionally excluded from exported
+projects.
 
 ## Coding Style & Naming Conventions
 
