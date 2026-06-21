@@ -15,11 +15,10 @@ const motionMoveSteps: CommandPrimitive = (util) => {
     const steps = Cast.toNumber(util.getInput('STEPS'));
     const radians = util.target.direction * Math.PI / 180;
     const from = {x: util.target.x, y: util.target.y};
-    const to = {
-        x: from.x + (steps * Math.sin(radians)),
-        y: from.y + (steps * Math.cos(radians))
-    };
-    util.target.setPosition(to.x, to.y);
+    // setXY applies Scratch fencing; the pen segment ends at the fenced
+    // position so the mark matches where the sprite actually lands.
+    util.setXY(from.x + (steps * Math.sin(radians)), from.y + (steps * Math.cos(radians)));
+    const to = {x: util.target.x, y: util.target.y};
 
     const pen = util.runtime.pen.getState(util.target.id);
     if (pen.down) {
@@ -30,6 +29,37 @@ const motionMoveSteps: CommandPrimitive = (util) => {
         );
     }
 };
+
+const motionGotoXY: CommandPrimitive = (util) => {
+    if (util.target.isStage) return;
+    util.setXY(Cast.toNumber(util.getInput('X')), Cast.toNumber(util.getInput('Y')));
+};
+
+const motionSetX: CommandPrimitive = (util) => {
+    if (util.target.isStage) return;
+    util.setXY(Cast.toNumber(util.getInput('X')), util.target.y);
+};
+
+const motionSetY: CommandPrimitive = (util) => {
+    if (util.target.isStage) return;
+    util.setXY(util.target.x, Cast.toNumber(util.getInput('Y')));
+};
+
+const motionChangeXBy: CommandPrimitive = (util) => {
+    if (util.target.isStage) return;
+    util.setXY(util.target.x + Cast.toNumber(util.getInput('DX')), util.target.y);
+};
+
+const motionChangeYBy: CommandPrimitive = (util) => {
+    if (util.target.isStage) return;
+    util.setXY(util.target.x, util.target.y + Cast.toNumber(util.getInput('DY')));
+};
+
+const motionXPosition: ReporterPrimitive = (util) =>
+    util.target.isStage ? 0 : util.target.x;
+
+const motionYPosition: ReporterPrimitive = (util) =>
+    util.target.isStage ? 0 : util.target.y;
 
 /**
  * Resolves the broadcast id referenced by an `event_broadcast`/
@@ -485,6 +515,11 @@ const dataHideList: CommandPrimitive = (util) => {
 
 export const commandPrimitives: Record<string, CommandPrimitive> = {
     motion_movesteps: motionMoveSteps,
+    motion_gotoxy: motionGotoXY,
+    motion_setx: motionSetX,
+    motion_sety: motionSetY,
+    motion_changexby: motionChangeXBy,
+    motion_changeyby: motionChangeYBy,
     control_wait: controlWait,
     control_repeat: controlRepeat,
     control_forever: controlForever,
@@ -522,6 +557,8 @@ export const commandPrimitives: Record<string, CommandPrimitive> = {
 };
 
 export const reporterPrimitives: Record<string, ReporterPrimitive> = {
+    motion_xposition: motionXPosition,
+    motion_yposition: motionYPosition,
     argument_reporter_string_number: argumentReporterStringNumber,
     argument_reporter_boolean: argumentReporterBoolean,
     data_variable: dataVariable,

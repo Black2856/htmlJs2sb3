@@ -69,11 +69,13 @@ test('hello-world updates and shows its message variable', () => {
     assert.equal(runtime.monitors.isVisible('hello-message'), true);
 });
 
-test('motion-basic executes motion_movesteps and renders the updated sprite state', () => {
+test('motion-basic executes motion_gotoxy then motion_movesteps and renders the updated sprite state', () => {
     const renderer = new RecordingRenderer();
     const runtime = runGreenFlag(createMotionBasicProject(), {renderer});
     const sprite = runtime.project.sprites[0];
-    assert.ok(Math.abs(sprite.x - -30) < 1e-10);
+    // go to (40, 20) then move 10 steps at direction 90 -> (50, 20). The
+    // RecordingRenderer exposes no getFencedPosition, so positions are raw.
+    assert.ok(Math.abs(sprite.x - 50) < 1e-10);
     assert.equal(sprite.y, 20);
     assert.ok(renderer.states.some(state => state.targetId === sprite.id));
 });

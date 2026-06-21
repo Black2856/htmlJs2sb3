@@ -17,7 +17,17 @@
 
 ## opcode実行契約
 
-primitiveは `(args, util)` 相当で呼び出す。`util` はtarget、thread、runtime、stack frame、branch起動、yield、hat起動を提供する。reporterは値、commandは原則値なし、非同期commandはthreadを待機状態へ移す。
+primitiveは `(args, util)` 相当で呼び出す。`util` はtarget、thread、runtime、stack frame、branch起動、yield、hat起動、`setXY`（fencing付き座標設定）を提供する。reporterは値、commandは原則値なし、非同期commandはthreadを待機状態へ移す。
+
+## motion と fencing
+
+位置を変えるmotion block（`motion_movesteps`、`motion_gotoxy`、`motion_setx`、`motion_sety`、`motion_changexby`、`motion_changeyby`、将来のglide）は、公式VMの `RenderedTarget.setXY` 同様に `util.setXY(x, y)` を通る。`setXY` は次のように動く。
+
+- rendererが接続され `getFencedPosition` を持つ場合、保存前にfenced座標へ補正する（公式の `if (this.renderer)` 相当、fencing仕様はSCRATCH_RENDER_SPEC参照）。
+- **headless（rendererなし）では補正せず生の座標を保存する**。これは公式VMと同じ振る舞いだが、結果としてheadless実行とrendererあり実行で最終座標が一致しない場合がある（例: 「x座標を300にする」はheadlessで300、rendererありで261付近）。headless unit testはこの素通しを前提に期待値を置く。
+- `motion_movesteps` のpen segmentはfencing後の着地点までを描く。
+- `motion_xposition`/`motion_yposition` reporterはfencing後の `target.x`/`target.y` を返す。
+- Stageでは座標を持たないためno-op、reporterは0を返す。
 
 ## 時間とスケジューリング
 

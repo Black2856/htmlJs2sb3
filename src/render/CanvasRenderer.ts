@@ -2,6 +2,20 @@ import type {DrawableState, PenAttributes, PenPoint, RendererPort} from './Rende
 import {Drawable} from './Drawable.ts';
 import type {Skin} from './Skin.ts';
 import {STAGE_WIDTH, STAGE_HEIGHT, scratchToCanvas, directionToRadians} from './coordinates.ts';
+import {computeLocalBounds, fencePosition} from './fencing.ts';
+
+/** Reads a decoded image source's intrinsic pixel dimensions, or null if unavailable. */
+const intrinsicSize = (image: CanvasImageSource): {width: number; height: number} | null => {
+    const source = image as {naturalWidth?: number; naturalHeight?: number; width?: unknown; height?: unknown};
+    const width = typeof source.naturalWidth === 'number' && source.naturalWidth > 0
+        ? source.naturalWidth
+        : (typeof source.width === 'number' ? source.width : 0);
+    const height = typeof source.naturalHeight === 'number' && source.naturalHeight > 0
+        ? source.naturalHeight
+        : (typeof source.height === 'number' ? source.height : 0);
+    if (width <= 0 || height <= 0) return null;
+    return {width, height};
+};
 
 const FALLBACK_SIZE = 40;
 const FALLBACK_COLORS = ['#6cc04a', '#ff8c1a', '#4a90d9', '#d94a4a', '#a64ad9'];
@@ -128,6 +142,34 @@ export class CanvasRenderer implements RendererPort {
     releaseTarget(targetId: string): void {
         this.skins.delete(targetId);
         this.lastStates.delete(targetId);
+    }
+
+    /**
+     * Scratch fencing: clamps (x, y) using the target's transformed costume
+     * bounds so the drawable cannot leave the Stage entirely. Returns the
+     * input unchanged when the target has no skin/decoded image yet.
+     */
+    getFencedPosition(
+        targetId: string,
+        x: number,
+        y: number,
+        transform: {size: number; direction: number; rotationStyle: DrawableState['rotationStyle']}
+    ): [number, number] {
+        const skin = this.skins.get(targetId);
+        const image = skin?.getImage() ?? null;
+        if (!skin || !image) return [x, y];
+        const dims = intrinsicSize(image);
+        if (!dims) return [x, y];
+        const bounds = computeLocalBounds(
+            dims.width,
+            dims.height,
+            skin.rotationCenterX,
+            skin.rotationCenterY,
+            transform.size,
+            transform.direction,
+            transform.rotationStyle
+        );
+        return fencePosition(x, y, bounds);
     }
 
     /** Introspection: target IDs in the order they were actually painted in the last renderDrawables() call (visible-only). */

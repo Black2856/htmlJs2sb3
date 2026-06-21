@@ -116,7 +116,8 @@ npm run preview -- full-feature-minimal --port 5000 --no-open
 
 - **緑の旗**: AudioContextを開始（ブラウザの自動再生制限のためクリック内で開始）し、`runtime.greenFlag()`を呼んで全`event_whenflagclicked`スレッドを起動します。Projectインスタンスは初回読み込み時に一度だけ生成し、緑の旗の再押下では**再生成せず再利用**します。そのためスプライトの座標は前回実行で移動した位置を保持したまま起動し、Scratch本来の「現在位置から相対的に動く」挙動になります（毎回初期座標へリセットされません）。
 - **Stop**: 全スレッド停止、音声停止、最終フレーム描画を行います。pen layerは緑の旗でもStopでも消去しません（Scratch準拠）。
-- **motion / pen**: `motion_movesteps`でライブ座標を更新し、pen down中の移動は移動前後の座標を結ぶ線としてpen layerへ描画します。
+- **motion / pen**: `motion_movesteps` / `motion_gotoxy` / `motion_setx` / `motion_sety` / `motion_changexby` / `motion_changeyby`でライブ座標を更新し、pen down中の移動は移動前後の座標を結ぶ線としてpen layerへ描画します。
+- **fencing**: previewはrenderer接続時、Scratch同様にスプライトを画面内に留めます（`getFencedPosition`）。`full-feature-minimal`のスプライトが画面外へ完全に消えないのは移動量や見た目の大きさのためではなく、このfencingでbounding boxが最低15px程度Stage内に残るためです。例えば「x座標を300にする」相当はコスチューム寸法に応じて x=261 付近に補正されます（headless/rendererなしでは補正されず素通し）。
 - **costume / clone**: costumeなしStageは透明背景として扱い、cloneは元Spriteのcostume skinを引き継ぎます。
 
 > 座標を初期値に戻して実行し直したい場合は、ブラウザを再読み込みする（=`load()`が再実行されProjectが作り直される）か、previewサーバを再起動します。

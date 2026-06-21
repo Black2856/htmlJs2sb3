@@ -87,6 +87,30 @@ export class BlockUtil {
         this.thread.status = 'YIELD_TICK';
     }
 
+    /**
+     * Sets a sprite's position, applying Scratch fencing when a renderer that
+     * exposes drawable bounds is attached, so the drawable cannot leave the
+     * Stage entirely (e.g. "set x to 300" lands near 261 for a small,
+     * large-scaled costume). With no renderer (headless) the raw position is
+     * stored, matching the official VM's `if (this.renderer)` guard. No-op on
+     * the Stage.
+     */
+    setXY(x: number, y: number): void {
+        if (this.target.isStage) return;
+        const sprite = this.target;
+        const fenced = this.runtime.renderer?.getFencedPosition?.(
+            sprite.id,
+            x,
+            y,
+            {size: sprite.size, direction: sprite.direction, rotationStyle: sprite.rotationStyle}
+        );
+        if (fenced) {
+            sprite.setPosition(fenced[0], fenced[1]);
+        } else {
+            sprite.setPosition(x, y);
+        }
+    }
+
     getVariableValue(id: string): PrimitiveValue {
         // Resolve through the live target object (not Project.getTarget by id)
         // so clones — which are not registered on Project.sprites — read their

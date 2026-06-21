@@ -53,4 +53,18 @@ export interface RendererPort {
     cloneTargetSkin?(sourceTargetId: string, cloneTargetId: string): void;
     /** Releases any renderer state cached for a target (e.g. a deleted clone). */
     releaseTarget?(targetId: string): void;
+    /**
+     * Returns the position clamped so the target's drawable cannot move fully
+     * off-stage (Scratch fencing). `transform` carries the dynamic placement
+     * (size/direction/rotationStyle); the renderer combines it with the
+     * target's registered skin bounds. Returns the input unchanged when no
+     * skin/bounds are available. Optional: a headless Runtime with no renderer
+     * skips fencing entirely, matching the official VM's `if (this.renderer)`.
+     */
+    getFencedPosition?(
+        targetId: string,
+        x: number,
+        y: number,
+        transform: {size: number; direction: number; rotationStyle: 'all around' | 'left-right' | "don't rotate"}
+    ): [number, number];
 }
