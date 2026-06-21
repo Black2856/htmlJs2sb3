@@ -60,8 +60,9 @@ export class SpriteRuntime {
     this.layerOrder = 0;
     this.sayText = null;
 
-    // Loaded images cache
-    this._images = new Map(); // costume name -> HTMLImageElement
+    // Loaded images cache (costume name -> HTMLImageElement).
+    // Clones share the original's map so loaded costume images render on clones too.
+    this._images = def._images ?? new Map();
   }
 
   // ─── Motion ───────────────────────────────────────────────────────────
@@ -216,6 +217,7 @@ export class SpriteRuntime {
       currentCostume: this.currentCostume,
       variables: varsCopy,
       lists: listsCopy,
+      _images: this._images, // share loaded costume images with the clone
     };
   }
 

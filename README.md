@@ -19,7 +19,8 @@ Scratch 互換の最小サブセットを HTML/JS で実装し、**中間DSL（J
 | `spec/` | DSL 正本（`scratch-rhythm.dsl.json`）|
 | `engine/` | Scratch風ランタイム（変数/リスト/イベント/スレッド/クローン/描画/音）。中核は Node でもヘッドレス動作 |
 | `tools/` | DSL→sb3 変換（`generate-sb3` / `pack-sb3`）・DSL検証（`generate-web`）・静的配信（`serve`）|
-| `web/` | ブラウザ用デモ（DSL を engine で実行）|
+| `web/` | ブラウザ用デモ（`index.html`=ランタイム実行 / `text-screen.html`=文字描画テスト画面）|
+| `resorce/font/determination/` | Determination フォント本体と、そこから生成した1文字ごとのグリフPNG（`glyphs/`）|
 | `tests/` | `node --test` 用テスト |
 
 ## 実装している Scratch ブロック（カテゴリ）
@@ -46,3 +47,29 @@ node tools/serve.js 8123
 Web デモは「緑の旗」で DSL を実行。サンプル DSL では Note スプライトがクローンされ落下し、
 broadcast / clone / motion / variables の実行を可視化する。実アセットが無くても動作する
 （Renderer はプレースホルダ描画、SoundBridge は無音フォールバック）。
+
+## 文字描画（Determination フォント）
+
+Scratch には文字列を画面に表示するブロックが無い（`say` の吹き出しのみ）。そこで
+**1文字=1コスチューム（画像）** とし、**ブロック定義（カスタムブロック）`writeText`** が文字列を
+1文字ずつクローン生成して並べる方式で文字描画を実現している。
+
+- フォント `resorce/font/determination/determination.ttf` から英大文字・小文字・数字・簡単な記号の
+  グリフを 1文字ずつ PNG 化（`resorce/font/determination/glyphs/cXXXX.png`、XXXX=コードポイント16進）。
+- `Glyph` スプライトが各文字を同名コスチュームとして持ち、`writeText(text, x, y)` が
+  `letter i of text` でコスチュームを切替えつつクローンを並べる。
+- テスト画面 DSL は `spec/text-screen.dsl.json`。`web/text-screen.html` で表示。
+
+```bash
+node tools/serve.js 8123
+# → http://localhost:8123/web/text-screen.html （Determination フォントの文字描画テスト画面）
+
+# 表示文字列を変えたら DSL を再生成（既存グリフPNGから）
+node tools/build-text-screen.mjs
+```
+
+グリフPNG自体を作り直す場合のみ、ブラウザで `determination.ttf` を `FontFace` 読込→canvas描画→
+`toDataURL` した結果を `tools/_glyphs.json` に保存してから `build-text-screen.mjs` を実行する
+（手順は同スクリプト冒頭のコメント参照）。
+
+![文字描画テスト画面](./claudedocs/text-screen.png)

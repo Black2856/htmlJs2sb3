@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
+    "gen-text-screen": "node tools/build-text-screen.mjs",
     "gen-sb3": "node tools/generate-sb3.js spec/scratch-rhythm.dsl.json dist/project.json",
     "pack-sb3": "node tools/pack-sb3.js spec/scratch-rhythm.dsl.json dist/scratch-rhythm.sb3",
     "serve": "node tools/serve.js"

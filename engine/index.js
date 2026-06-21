@@ -15,3 +15,4 @@ export { CloneManager }               from './CloneManager.js';
 export { Renderer }                   from './Renderer.js';
 export { PenCompat }                  from './PenCompat.js';
 export { Runtime }                    from './Runtime.js';
+export { loadCostumeImages }          from './AssetLoader.js';
