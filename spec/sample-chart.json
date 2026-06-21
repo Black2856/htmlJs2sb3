@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "meta": {
+    "title": "Test Song",
+    "artist": "Unknown",
+    "bpm": 160,
+    "offsetMs": -12,
+    "lanes": 4
+  },
+  "audio": {
+    "file": "assets/audio/bgm_song_main_160bpm_v01.wav",
+    "previewStartMs": 24000
+  },
+  "timing": {
+    "perfectMs": 40,
+    "greatMs": 80,
+    "goodMs": 120
+  },
+  "notes": [
+    { "id": "n0001", "timeMs": 1000, "lane": 0, "type": "tap" },
+    { "id": "n0002", "timeMs": 1375, "lane": 1, "type": "tap" },
+    { "id": "n0003", "timeMs": 1750, "lane": 2, "type": "tap" },
+    { "id": "n0004", "timeMs": 2125, "lane": 3, "type": "tap" },
+    { "id": "n0005", "timeMs": 2500, "lane": 0, "type": "tap" },
+    { "id": "n0006", "timeMs": 2875, "lane": 1, "type": "tap" },
+    { "id": "n0007", "timeMs": 3250, "lane": 2, "type": "tap" },
+    { "id": "n0008", "timeMs": 3625, "lane": 3, "type": "tap" },
+    { "id": "n0009", "timeMs": 4000, "lane": 1, "type": "tap" },
+    { "id": "n0010", "timeMs": 4000, "lane": 2, "type": "tap" },
+    { "id": "n0011", "timeMs": 4500, "lane": 0, "type": "tap" },
+    { "id": "n0012", "timeMs": 4500, "lane": 3, "type": "tap" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "scratch-rhythm",
+  "version": "0.1.0",
+  "description": "Scratch-compatible rhythm-game subset runnable on HTML/JS and exportable to .sb3",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "validate-chart": "node tools/validate-chart.js spec/sample-chart.json",
+    "gen-sb3": "node tools/generate-sb3.js spec/scratch-rhythm.dsl.json dist/project.json",
+    "pack-sb3": "node tools/pack-sb3.js spec/scratch-rhythm.dsl.json dist/scratch-rhythm.sb3",
+    "serve": "node tools/serve.js"
+  },
+  "license": "MIT"
+}

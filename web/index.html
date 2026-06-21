@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scratch Rhythm Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>SCRATCH RHYTHM</h1>
+
+  <canvas id="game-canvas" width="480" height="360"></canvas>
+
+  <div id="controls">
+    <button id="btn-start">▶ Start</button>
+    <button id="btn-auto">Auto OFF</button>
+    <button id="btn-debug">Debug OFF</button>
+  </div>
+
+  <div id="score-panel">
+    <span class="count-score"  id="disp-score">SCORE: 0</span>
+    <span class="count-combo"  id="disp-combo">COMBO: 0</span>
+    <span class="count-perfect" id="disp-perfect">P: 0</span>
+    <span class="count-great"   id="disp-great">Gr: 0</span>
+    <span class="count-good"    id="disp-good">Go: 0</span>
+    <span class="count-miss"    id="disp-miss">Ms: 0</span>
+  </div>
+
+  <div id="key-hint">Keys: D / F / J / K — lanes 1 / 2 / 3 / 4</div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
