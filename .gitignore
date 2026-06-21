@@ -9,3 +9,6 @@ node_modules/
 /playwright/.cache/
 # esbuild が生成するブラウザ用バンドル
 /tests/e2e/.bundle/
+
+# Local debug output
+/debug.log
