@@ -1,6 +1,6 @@
 /* style.css
-   内部解像度 480x360 固定、見た目を2x以上に拡大
-   image-rendering: pixelated でドット感を維持
+   内部解像度 480x360 固定、見た目を 2x 以上に拡大。
+   image-rendering: pixelated でドット感を維持。
 */
 
 *, *::before, *::after {
@@ -28,14 +28,17 @@ h1 {
   color: #ffd700;
 }
 
-/* ─── Canvas ─── */
-#game-canvas {
-  /* 内部解像度 480x360 */
-  width:  960px;  /* 2x 拡大 */
+.subtitle {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+/* ─── Canvas（内部 480x360, 2x 表示） ─── */
+#stage {
+  width:  960px;
   height: 720px;
   max-width: 100%;
-  max-height: calc(100vh - 140px);
-  /* アスペクト比を維持しながらレスポンシブ */
+  max-height: calc(100vh - 180px);
   aspect-ratio: 4 / 3;
   object-fit: contain;
 
@@ -48,7 +51,7 @@ h1 {
   cursor: default;
 }
 
-/* ─── コントロールパネル ─── */
+/* ─── コントロール ─── */
 #controls {
   display: flex;
   gap: 8px;
@@ -66,50 +69,37 @@ button {
   transition: background 0.15s;
 }
 
-#btn-start {
-  background: #4caf50;
-  color: #fff;
-}
-#btn-start:hover { background: #388e3c; }
+#btn-flag { background: #4caf50; color: #fff; }
+#btn-flag:hover { background: #388e3c; }
+#btn-stop { background: #444; color: #ccc; }
+#btn-stop:hover { background: #555; }
 
-#btn-auto {
-  background: #ff8c00;
-  color: #fff;
-}
-#btn-auto.active { background: #b35c00; }
-#btn-auto:hover  { background: #cc6f00; }
-
-#btn-debug {
-  background: #444;
-  color: #ccc;
-}
-#btn-debug.active { background: #666; }
-#btn-debug:hover  { background: #555; }
-
-/* ─── 判定カウンタ表示 ─── */
-#score-panel {
+/* ─── ステータス行 ─── */
+#status {
   display: flex;
   gap: 16px;
   font-size: 0.9rem;
   font-family: monospace;
 }
 
-#score-panel span {
+#status span {
   padding: 4px 10px;
   border-radius: 4px;
   background: rgba(255,255,255,0.08);
 }
 
-.count-perfect { color: #ffd700; }
-.count-great   { color: #00e5ff; }
-.count-good    { color: #69ff47; }
-.count-miss    { color: #ff5252; }
-.count-score   { color: #fff; font-weight: bold; }
-.count-combo   { color: #ff0; }
+#status b { color: #ffd700; }
 
-/* ─── キー案内 ─── */
-#key-hint {
+/* ─── ヒント ─── */
+#hint {
   font-size: 0.8rem;
   color: #777;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
+}
+
+#hint code {
+  color: #9cf;
+  background: rgba(255,255,255,0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
 }

@@ -3,30 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scratch Rhythm Game</title>
+  <title>Scratch Runtime Demo</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>SCRATCH RHYTHM</h1>
+  <h1>SCRATCH RUNTIME</h1>
+  <p class="subtitle">DSL を engine（Scratch互換ランタイム）で実行するデモ</p>
 
-  <canvas id="game-canvas" width="480" height="360"></canvas>
+  <!-- 内部解像度 480x360 固定。表示は CSS で拡大 -->
+  <canvas id="stage" width="480" height="360"></canvas>
 
   <div id="controls">
-    <button id="btn-start">▶ Start</button>
-    <button id="btn-auto">Auto OFF</button>
-    <button id="btn-debug">Debug OFF</button>
+    <button id="btn-flag">⚑ 緑の旗</button>
+    <button id="btn-stop">■ 停止</button>
   </div>
 
-  <div id="score-panel">
-    <span class="count-score"  id="disp-score">SCORE: 0</span>
-    <span class="count-combo"  id="disp-combo">COMBO: 0</span>
-    <span class="count-perfect" id="disp-perfect">P: 0</span>
-    <span class="count-great"   id="disp-great">Gr: 0</span>
-    <span class="count-good"    id="disp-good">Go: 0</span>
-    <span class="count-miss"    id="disp-miss">Ms: 0</span>
+  <div id="status">
+    <span>clones: <b id="st-clones">0</b></span>
+    <span>score: <b id="st-score">-</b></span>
+    <span>combo: <b id="st-combo">-</b></span>
+    <span>timer: <b id="st-timer">0.0</b>s</span>
   </div>
 
-  <div id="key-hint">Keys: D / F / J / K — lanes 1 / 2 / 3 / 4</div>
+  <p id="hint">DSL: <code>spec/scratch-rhythm.dsl.json</code> — Note スプライトがクローンされ落下します（broadcast / clone / motion / variables の実行例）。</p>
 
   <script type="module" src="main.js"></script>
 </body>
