@@ -37,6 +37,15 @@ export class ListStore {
         return [...this.listsById.values()];
     }
 
+    /** Replaces the full contents of a list in place. */
+    setValues(id: string, values: ListValue[]): void {
+        const list = this.listsById.get(id);
+        if (!list) {
+            throw new Error(`List ${id} does not exist in this store.`);
+        }
+        list.values = values;
+    }
+
     [Symbol.iterator](): IterableIterator<DslList> {
         return this.listsById.values();
     }

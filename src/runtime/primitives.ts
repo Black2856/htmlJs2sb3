@@ -1,0 +1,309 @@
+import {Cast, LIST_ALL, LIST_INVALID} from '../cast/Cast.ts';
+import type {BlockUtil, PrimitiveValue} from './BlockRunner.ts';
+
+export type CommandPrimitive = (util: BlockUtil) => void | PromiseLike<unknown>;
+export type ReporterPrimitive = (util: BlockUtil) => PrimitiveValue;
+
+/**
+ * Resolves the broadcast id referenced by an `event_broadcast`/
+ * `event_broadcastandwait` block's BROADCAST_INPUT, given the menu shadow's
+ * field value/id pair (`{value: name, id}` on `event_broadcast_menu`).
+ */
+const resolveBroadcastId = (util: BlockUtil): string | null => {
+    // BROADCAST_INPUT's shadow is an `event_broadcast_menu` block whose sole
+    // field (BROADCAST_OPTION) carries both the broadcast name (`value`) and
+    // its id. getInput() on a shadow returns the field's `value`, i.e. the
+    // name, which we resolve by name (id is the preferred match per spec,
+    // but the shadow's field id is read directly here for precision).
+    const name = Cast.toString(util.getInput('BROADCAST_INPUT'));
+    const broadcast = util.runtime.project.broadcasts.getByName(name);
+    return broadcast ? broadcast.id : null;
+};
+
+// ---------------------------------------------------------------------------
+// control
+// ---------------------------------------------------------------------------
+
+const controlWait: CommandPrimitive = (util) => {
+    const ctx = util.stackFrame as {deadline?: number};
+    if (ctx.deadline === undefined) {
+        const durationMs = Cast.toNumber(util.getInput('DURATION')) * 1000;
+        ctx.deadline = util.runtime.currentMSecs + durationMs;
+        util.yieldTick();
+        return;
+    }
+    if (util.runtime.currentMSecs < ctx.deadline) {
+        util.yieldTick();
+    }
+};
+
+const controlRepeat: CommandPrimitive = (util) => {
+    const ctx = util.stackFrame as {count?: number};
+    if (ctx.count === undefined) {
+        ctx.count = Math.round(Cast.toNumber(util.getInput('TIMES')));
+    }
+    ctx.count--;
+    if (ctx.count >= 0) {
+        util.startBranch('SUBSTACK', true);
+    }
+};
+
+const controlForever: CommandPrimitive = (util) => {
+    util.startBranch('SUBSTACK', true);
+};
+
+const controlIf: CommandPrimitive = (util) => {
+    if (Cast.toBoolean(util.getInput('CONDITION'))) {
+        util.startBranch('SUBSTACK', false);
+    }
+};
+
+const controlIfElse: CommandPrimitive = (util) => {
+    if (Cast.toBoolean(util.getInput('CONDITION'))) {
+        util.startBranch('SUBSTACK', false);
+    } else {
+        util.startBranch('SUBSTACK2', false);
+    }
+};
+
+const controlStop: CommandPrimitive = (util) => {
+    const option = util.field('STOP_OPTION')?.value;
+    if (option === 'all') {
+        util.runtime.stopAll();
+        return;
+    }
+    if (option === 'this script') {
+        util.thread.stackFrames.length = 0;
+        util.thread.status = 'DONE';
+        return;
+    }
+    if (option === 'other scripts in sprite' || option === 'other scripts in stage') {
+        for (const other of util.runtime.threads) {
+            if (other !== util.thread && other.target === util.target) {
+                other.stackFrames.length = 0;
+                other.status = 'DONE';
+            }
+        }
+    }
+};
+
+// ---------------------------------------------------------------------------
+// data: variables
+// ---------------------------------------------------------------------------
+
+const dataSetVariableTo: CommandPrimitive = (util) => {
+    const id = util.field('VARIABLE')?.id;
+    if (!id) return;
+    util.setVariableValue(id, util.getInput('VALUE'));
+};
+
+const dataChangeVariableBy: CommandPrimitive = (util) => {
+    const id = util.field('VARIABLE')?.id;
+    if (!id) return;
+    util.changeVariableBy(id, Cast.toNumber(util.getInput('VALUE')));
+};
+
+const dataVariable: ReporterPrimitive = (util) => {
+    const id = util.field('VARIABLE')?.id;
+    if (!id) return '';
+    return util.getVariableValue(id);
+};
+
+// ---------------------------------------------------------------------------
+// data: lists
+// ---------------------------------------------------------------------------
+
+const getListValues = (util: BlockUtil, listId: string): PrimitiveValue[] | null => {
+    const owner = util.getListOwner(listId);
+    if (!owner) return null;
+    return owner.lists.get(listId) as PrimitiveValue[];
+};
+
+const dataAddToList: CommandPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return;
+    const owner = util.getListOwner(id);
+    const values = owner ? owner.lists.get(id) : undefined;
+    if (!owner || !values) return;
+    owner.lists.setValues(id, [...values, util.getInput('ITEM')]);
+};
+
+const dataDeleteOfList: CommandPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return;
+    const owner = util.getListOwner(id);
+    const values = owner ? owner.lists.get(id) : undefined;
+    if (!owner || !values) return;
+    const index = Cast.toListIndex(
+        util.getInput('INDEX'),
+        values.length,
+        true,
+        () => util.runtime.random.random()
+    );
+    if (index === LIST_INVALID) return;
+    if (index === LIST_ALL) {
+        owner.lists.setValues(id, []);
+        return;
+    }
+    const next = [...values];
+    next.splice(index - 1, 1);
+    owner.lists.setValues(id, next);
+};
+
+const dataDeleteAllOfList: CommandPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return;
+    const owner = util.getListOwner(id);
+    if (!owner) return;
+    owner.lists.setValues(id, []);
+};
+
+const dataInsertAtList: CommandPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return;
+    const owner = util.getListOwner(id);
+    const values = owner ? owner.lists.get(id) : undefined;
+    if (!owner || !values) return;
+    const index = Cast.toListIndex(
+        util.getInput('INDEX'),
+        values.length + 1,
+        false,
+        () => util.runtime.random.random()
+    );
+    if (index === LIST_INVALID || index === LIST_ALL) return;
+    const next = [...values];
+    next.splice(index - 1, 0, util.getInput('ITEM'));
+    owner.lists.setValues(id, next);
+};
+
+const dataReplaceItemOfList: CommandPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return;
+    const owner = util.getListOwner(id);
+    const values = owner ? owner.lists.get(id) : undefined;
+    if (!owner || !values) return;
+    const index = Cast.toListIndex(
+        util.getInput('INDEX'),
+        values.length,
+        false,
+        () => util.runtime.random.random()
+    );
+    if (index === LIST_INVALID || index === LIST_ALL) return;
+    const next = [...values];
+    next[index - 1] = util.getInput('ITEM');
+    owner.lists.setValues(id, next);
+};
+
+const dataItemOfList: ReporterPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return '';
+    const values = getListValues(util, id);
+    if (!values) return '';
+    const index = Cast.toListIndex(
+        util.getInput('INDEX'),
+        values.length,
+        false,
+        () => util.runtime.random.random()
+    );
+    if (index === LIST_INVALID || index === LIST_ALL) return '';
+    return values[index - 1];
+};
+
+const dataItemNumOfList: ReporterPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return 0;
+    const values = getListValues(util, id);
+    if (!values) return 0;
+    const item = util.getInput('ITEM');
+    for (let i = 0; i < values.length; i++) {
+        if (Cast.compare(values[i], item) === 0) return i + 1;
+    }
+    return 0;
+};
+
+const dataLengthOfList: ReporterPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return 0;
+    const values = getListValues(util, id);
+    return values ? values.length : 0;
+};
+
+const dataListContainsItem: ReporterPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return false;
+    const values = getListValues(util, id);
+    if (!values) return false;
+    const item = util.getInput('ITEM');
+    return values.some(value => Cast.compare(value, item) === 0);
+};
+
+const dataListContents: ReporterPrimitive = (util) => {
+    const id = util.field('LIST')?.id;
+    if (!id) return '';
+    const values = getListValues(util, id);
+    if (!values) return '';
+    const allSingleCharacters = values.every(value => Cast.toString(value).length === 1);
+    return values.map(value => Cast.toString(value)).join(allSingleCharacters ? '' : ' ');
+};
+
+// ---------------------------------------------------------------------------
+// event / broadcast
+// ---------------------------------------------------------------------------
+
+const eventBroadcast: CommandPrimitive = (util) => {
+    const id = resolveBroadcastId(util);
+    if (!id) return;
+    util.runtime.startHats('event_whenbroadcastreceived', {broadcastId: id}, true);
+};
+
+interface BroadcastAndWaitContext {
+    started?: import('./Thread.ts').Thread[];
+}
+
+const eventBroadcastAndWait: CommandPrimitive = (util) => {
+    const ctx = util.stackFrame as BroadcastAndWaitContext;
+    if (ctx.started === undefined) {
+        const id = resolveBroadcastId(util);
+        ctx.started = id ?
+            util.runtime.startHats('event_whenbroadcastreceived', {broadcastId: id}, true) :
+            [];
+        if (ctx.started.length === 0) return;
+        util.yieldTick();
+        return;
+    }
+    const stillRunning = ctx.started.some(t => util.runtime.threads.includes(t) && t.status !== 'DONE');
+    if (stillRunning) {
+        util.yieldTick();
+    }
+};
+
+// ---------------------------------------------------------------------------
+// registries
+// ---------------------------------------------------------------------------
+
+export const commandPrimitives: Record<string, CommandPrimitive> = {
+    control_wait: controlWait,
+    control_repeat: controlRepeat,
+    control_forever: controlForever,
+    control_if: controlIf,
+    control_if_else: controlIfElse,
+    control_stop: controlStop,
+    data_setvariableto: dataSetVariableTo,
+    data_changevariableby: dataChangeVariableBy,
+    data_addtolist: dataAddToList,
+    data_deleteoflist: dataDeleteOfList,
+    data_deletealloflist: dataDeleteAllOfList,
+    data_insertatlist: dataInsertAtList,
+    data_replaceitemoflist: dataReplaceItemOfList,
+    event_broadcast: eventBroadcast,
+    event_broadcastandwait: eventBroadcastAndWait
+};
+
+export const reporterPrimitives: Record<string, ReporterPrimitive> = {
+    data_variable: dataVariable,
+    data_itemoflist: dataItemOfList,
+    data_itemnumoflist: dataItemNumOfList,
+    data_lengthoflist: dataLengthOfList,
+    data_listcontainsitem: dataListContainsItem,
+    data_listcontents: dataListContents
+};
