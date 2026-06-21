@@ -3,16 +3,21 @@
 ## KNOWLEDGE MANAGEMENT (IMPORTANT)
 
 - AGENTS.md: High-level rules, core conventions, critical constraints, workflows only. Keep under 400 lines.
-- All detailed design, architecture, decisions, patterns, specs, roadmaps → /doc/ directory (create if missing).
+- All detailed design, architecture, decisions, patterns, specs → /doc/ directory.
 - Before starting any task: Check relevant /doc/*.md first.
 - After completing any task:
-  1. Update or create appropriate file(s) in /doc/ for details.
-  2. Evaluate whether AGENTS.md needs high-level changes (new rules/constraints/workflows only).
-  3. At the end of response:
+  1. Update or create appropriate file(s) in /doc/
+  2. Evaluate if AGENTS.md needs high-level update (rules/constraints/workflows only)
+  3. At end of response:
      - Always add "**/doc Update Proposal**"
-     - Add "**AGENTS.md Update Proposal**" only if high-level update is needed
-- Never duplicate detailed information between AGENTS.md and /doc/.
-- Prefer moving content to /doc/ rather than expanding this file.
+     - Add "**AGENTS.md Update Proposal**" only if needed
+
+## TASK & MODEL OPTIMIZATION
+
+- Complex tasks: decompose + use sub-agents (Architect/Validator/Tester...)
+- Choose right model: Claude Opus/GPT-5.5 for complex, Claude Sonnet/GPT-5.5 for fast/simple
+- Strong model for planning, fast model for execution
+- Maximize token efficiency
 
 ## Project Status and Direction
 
