@@ -87,14 +87,14 @@ test('rejects workspace asset bytes whose MD5 differs from assetId', async () =>
                     dataFormat: 'png',
                     kind: 'costume',
                     mimeType: 'image/png',
-                    source: 'costume.png'
+                    source: 'bad-asset-project/costume.png'
                 }]
             },
             {'costume.png': actualBytes}
         );
 
         await assert.rejects(
-            () => loadWorkspaceProject('bad-asset-project', {projectsRoot: root}),
+            () => loadWorkspaceProject('bad-asset-project', {projectsRoot: root, sourceRoot: root}),
             (error: unknown) => {
                 assert.ok(error instanceof WorkspaceProjectError);
                 assert.ok(error.diagnostics.some(item => item.code === 'asset.hash-mismatch'));

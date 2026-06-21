@@ -22,7 +22,7 @@ Phases 0–6 are complete: validation, domain model, Runtime, Canvas/input,
 asset/audio, clone/procedure/pen/monitor, and DSL-to-SB3 export.
 
 - Phase 7: AI authoring workflow, sample fixtures, and real-editor verification.
-- Phase 7.1: local `workspace/projects/` preview and SB3 export workflow.
+- Phase 7.1: local `workspace/<name>/` preview and SB3 export workflow.
 - Phase 8: existing SB3 import and round-trip preservation.
 - Phase 9: optional compatibility improvements.
 
@@ -40,12 +40,14 @@ Do not implement a later phase unless explicitly requested.
 ## Workspace and Test Assets
 
 - At task start, inspect `workspace/` and confirm the actual repository root before editing.
-- Local Scratch works live under `workspace/projects/<name>/`; keep their `project.ts`, `assets.json`, and generated `output/` there.
+- Local Scratch works live under `workspace/<name>/`, one directory per work directly inside `workspace/`; keep their `project.ts`, `assets.json`, per-work `assets/`, and generated `output/` there.
+- Scaffold new works with `npm run new -- <name>`; it creates `workspace/<name>/` with a minimal valid `project.ts`, an empty `assets.json`, an empty `assets/`, and `output/`, and refuses to overwrite an existing directory.
+- Asset `source` paths in both `assets.json` and the DSL are repository-root-relative (e.g. `workspace/<name>/assets/sprite/foo.png`), matching `meta.source`; `loadWorkspaceProject` resolves them from the repository root.
 - Use the same validated `project.ts` DSL for both `npm run preview -- <name>` and `npm run sb3 -- <name>`.
 - Keep reusable preview/CLI mechanisms in `preview/`, `tools/`, and `src/`; do not move common Runtime/Renderer/SB3 code into a workspace project.
 - `workspace/` is intentionally gitignored. Keep CI and regression fixtures under `tests/fixtures/`.
-- Phase 7 test assets live under `workspace/test-project/`.
-- Use `music/`, `sound_effect/`, and `sprite/` assets from that directory for fixtures and SB3 tests.
+- Phase 7 assets live in each work's own `assets/` (`workspace/<name>/assets/{sprite,sound_effect,music}/`); there is no shared asset pool. Asset-backed regression fixtures read from the bundled `full-feature-minimal/assets/`.
+- Use `music/`, `sound_effect/`, and `sprite/` assets from a work's `assets/` directory for fixtures and SB3 tests.
 - Do not add external assets without explicit approval.
 - Asset-backed fixtures must derive `assetId` from bytes and keep `md5ext = assetId.dataFormat`.
 - Keep filesystem reads in Node-only helpers so reusable DSL fixtures remain browser-safe.

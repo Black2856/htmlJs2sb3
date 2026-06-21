@@ -26,7 +26,7 @@
 
 ## Assets
 
-Use assets only from `workspace/test-project/`.
+Place assets in this work's own `assets/` (`workspace/<name>/assets/`); there is no shared asset pool. Use repository-root-relative `source` paths such as `workspace/<name>/assets/sprite/foo.png`.
 
 | Purpose | Source path | dataFormat | assetId (MD5) | md5ext |
 |---|---|---|---|---|

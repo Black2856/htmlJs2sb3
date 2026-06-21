@@ -42,7 +42,7 @@ test.describe('Phase 7 sample fixtures', () => {
                 kind: 'costume',
                 mimeType: 'image/png',
                 status: 'ready',
-                source: 'workspace/test-project',
+                source: 'workspace/full-feature-minimal/assets',
                 bytes: new Uint8Array(bytes)
             }], {image: new App.BrowserImageDecoder()});
             await App.loadCurrentCostumeSkins(project, assets, renderer);

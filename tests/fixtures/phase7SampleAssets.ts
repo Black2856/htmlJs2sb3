@@ -9,9 +9,9 @@ export const SAMPLE_SOUND_ASSET_ID = 'f6dd6ce46ae68b12085fece5b613a4f6';
 export const SAMPLE_SOUND_MD5EXT = `${SAMPLE_SOUND_ASSET_ID}.mp3`;
 
 export const SAMPLE_COSTUME_SOURCE =
-    'workspace/test-project/sprite/font/determination/glyphs/c0041.png';
+    'workspace/full-feature-minimal/assets/sprite/font/determination/glyphs/c0041.png';
 export const SAMPLE_SOUND_SOURCE =
-    'workspace/test-project/sound_effect/カーソル移動6.mp3';
+    'workspace/full-feature-minimal/assets/sound_effect/カーソル移動6.mp3';
 
 const sourcePath = (relativePath: string): string =>
     fileURLToPath(new URL(`../../${relativePath.replaceAll('\\', '/')}`, import.meta.url));

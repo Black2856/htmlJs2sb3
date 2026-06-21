@@ -11,6 +11,7 @@ import {
 } from '../src/diagnostics/ProjectDiagnostic.ts';
 import {DomInputManager} from '../src/input/DomInputManager.ts';
 import {createProject} from '../src/model/ProjectFactory.ts';
+import type {Project} from '../src/model/Project.ts';
 import {CanvasRenderer} from '../src/render/CanvasRenderer.ts';
 import {
     BrowserImageDecoder,
@@ -105,6 +106,7 @@ const diagnosticsElement = required<HTMLElement>('diagnostics');
 const canvas = required<HTMLCanvasElement>('stage');
 
 let dsl: DslProject | null = null;
+let project: Project | null = null;
 let assets: AssetManager<HTMLImageElement | ImageBitmap, unknown> | null = null;
 let renderer: CanvasRenderer | null = null;
 let input: DomInputManager | null = null;
@@ -245,13 +247,11 @@ const ensureAudio = async (): Promise<void> => {
 };
 
 const start = async (): Promise<void> => {
-    if (!dsl || !assets || !renderer) return;
+    if (!dsl || !assets || !renderer || !project) return;
     greenFlag.disabled = true;
     try {
         await stop();
         await ensureAudio();
-        const project = createProject(dsl);
-        await loadCurrentCostumeSkins(project, assets, renderer);
         await loadProjectSounds(project, assets, soundManager!);
         runtime = new Runtime({
             renderer,
@@ -282,7 +282,7 @@ const load = async (): Promise<void> => {
         const payload = await response.json() as PreviewPayload;
         diagnostics = [...payload.diagnostics];
         projectName.textContent = payload.name || 'Workspace project';
-        projectPath.textContent = `workspace/projects/${payload.name}/project.ts`;
+        projectPath.textContent = `workspace/${payload.name}/project.ts`;
         if (!payload.ok || !payload.project || !payload.assets) {
             setStatus('error');
             renderDiagnostics();
@@ -318,7 +318,7 @@ const load = async (): Promise<void> => {
         assets = new AssetManager(records, {image: new BrowserImageDecoder()});
         renderer = new CanvasRenderer(canvas);
         input = new DomInputManager(canvas, window);
-        const project = createProject(dsl);
+        project = createProject(dsl);
         await loadCurrentCostumeSkins(project, assets, renderer);
         runtime = new Runtime({renderer, input});
         runtime.load(project);

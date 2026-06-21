@@ -53,7 +53,7 @@ export const repositoryRoot = path.resolve(
     '..'
 );
 
-export const workspaceProjectsRoot = path.join(repositoryRoot, 'workspace', 'projects');
+export const workspaceProjectsRoot = path.join(repositoryRoot, 'workspace');
 
 export const resolveWorkspaceProjectDirectory = (
     name: string,
@@ -135,9 +135,13 @@ const targetIdForPath = (project: DslProject, diagnosticPath: string): string | 
 
 export const loadWorkspaceProject = async (
     name: string,
-    options: {projectsRoot?: string} = {}
+    options: {projectsRoot?: string; sourceRoot?: string} = {}
 ): Promise<LoadedWorkspaceProject> => {
     const directory = resolveWorkspaceProjectDirectory(name, options.projectsRoot);
+    // Asset `source` paths are repository-root-relative (e.g.
+    // `workspace/<name>/assets/sprite/foo.png`), matching the DSL's
+    // `meta.source` and `assets[].source`. Tests override the base.
+    const sourceRoot = options.sourceRoot ?? repositoryRoot;
     const projectFile = path.join(directory, 'project.ts');
     const manifestFile = path.join(directory, 'assets.json');
     const project = await importProject(projectFile, name);
@@ -193,7 +197,7 @@ export const loadWorkspaceProject = async (
             ));
         }
 
-        const sourcePath = path.resolve(directory, entry.source);
+        const sourcePath = path.resolve(sourceRoot, entry.source);
         let bytes: Uint8Array;
         try {
             bytes = new Uint8Array(await readFile(sourcePath));
