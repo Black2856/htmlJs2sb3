@@ -1,260 +1,142 @@
 # Repository Guidelines
 
-## KNOWLEDGE MANAGEMENT (IMPORTANT)
+## Knowledge Management
 
-- AGENTS.md: High-level rules, core conventions, critical constraints, workflows only. Keep under 400 lines.
-- All detailed design, architecture, decisions, patterns, specs → /doc/ directory.
-- Before starting any task: Check relevant /doc/*.md first.
-- After completing any task:
-  1. Update or create appropriate file(s) in /doc/
-  2. Evaluate if AGENTS.md needs high-level update (rules/constraints/workflows only)
-  3. At end of response:
-     - Always add "**/doc Update Proposal**"
-     - Add "**AGENTS.md Update Proposal**" only if needed
+- Keep `AGENTS.md` limited to high-level rules, constraints, and workflows.
+- Put detailed architecture and design in `docs/`; current design documents live mainly in `docs/main_design/`.
+- Before work, read only the documents relevant to the task.
+- After material changes, update the relevant document when behavior or design has changed.
+- In the final response, include a short `docs Update Proposal` when documentation should be added or revised. Include an `AGENTS.md Update Proposal` only when repository-wide guidance must change.
 
-## TASK & MODEL OPTIMIZATION
+## Task and Model Optimization
 
 - Complex tasks: decompose + use sub-agents (Architect/Validator/Tester...)
-- Choose right model: Claude Opus/GPT-5.5 for complex, Claude Sonnet/GPT-5.5 for fast/simple
+- Model: Opus/GPT-5.5 for complex, Sonnet/GPT-5.5 for general or fast
 - Strong model for planning, fast model for execution
 - Maximize token efficiency
 
-## Project Status and Direction
+## Current Status and Roadmap
 
-This repository implements a staged Scratch 3-compatible DSL foundation. It is
-a compatibility subset, not a complete Scratch clone.
+This is a Scratch 3-compatible DSL foundation, not a complete Scratch clone.
+Phases 0–6 are complete: validation, domain model, Runtime, Canvas/input,
+asset/audio, clone/procedure/pen/monitor, and DSL-to-SB3 export.
 
-Phases 0–6 are complete:
+- Phase 7: AI authoring workflow, sample fixtures, and real-editor verification.
+- Phase 8: existing SB3 import and round-trip preservation.
+- Phase 9: optional compatibility improvements.
 
-- Phase 0: DSL schema, stable IDs, Scratch-compatible casts, opcode metadata, and validation.
-- Phase 1: Project/Stage/Sprite/Target domain model, block containers, and stores.
-- Phase 2: DOM-free Runtime, scheduler, threads, block runner, events, and data primitives.
-- Phase 3: Canvas 2D rendering and DOM keyboard/mouse input.
-- Phase 4: asset management, MD5 validation, and simple Web Audio.
-- Phase 5: clone, custom procedure/warp, pen, and monitor minimum support.
-- Phase 6: validated DSL → project.json serialization, SB3 ZIP packaging, and `scratch-parser` compatibility checks.
+Use:
 
-Phase 7 has been redefined as AI authoring operations, sample-fixture work, and
-real-editor verification. It is not a Scratch GUI/editor implementation.
-Phase 8 is reserved for SB3 import and round-trip work. Phase 9 is optional
-compatibility work such as pitch/pan and collision improvements. Do not
-implement a later phase unless explicitly requested.
+- `docs/IMPLEMENTATION_ROADMAP(1~6).md` for completed phase history.
+- `docs/NEXT_PHASE_ROADMAP(7~9).md` for current priorities.
+- `docs/main_design/POST_PHASE6_STATUS.md` for capabilities and limits.
+- `docs/main_design/DSL_AUTHORING_GUIDE_FOR_AI.md` for DSL generation.
+- `docs/main_design/SB3_REAL_EDITOR_VERIFICATION_SPEC.md` for manual Scratch/TurboWarp checks.
+- `docs/main_design/SB3_IMPORT_DESIGN_DRAFT.md` for Phase 8 design only.
 
-The current roadmap is `docs/main_design/NEXT_PHASE_ROADMAP.md`. The older
-`docs/IMPLEMENTATION_ROADMAP.md` remains useful for the Phase 0–6 history, but
-its Phase 7+ definitions are superseded.
+Do not implement a later phase unless explicitly requested.
 
 ## Sources of Truth
 
-Use this priority when documentation disagrees:
+When information conflicts, use this order:
 
-1. The current implementation and tests.
-2. `schemas/project.schema.json` plus the handwritten validators.
-3. Current specifications under `docs/main_design/`.
-4. This file.
-5. Historical roadmap text and `CLAUDE.md`.
+1. Current implementation and tests.
+2. `schemas/project.schema.json` and handwritten validators.
+3. Current documents under `docs/`.
+4. `AGENTS.md`.
+5. `CLAUDE.md` and historical notes.
 
-Important current documents:
+`scratch-editor/` and `scratch-audio/` are pinned, nested upstream research
+checkouts. Treat them as read-only unless a task explicitly targets them.
 
-- `docs/main_design/POST_PHASE6_STATUS.md`: implemented capabilities and limitations.
-- `docs/main_design/NEXT_PHASE_ROADMAP.md`: Phase 7–9 scope.
-- `docs/main_design/DSL_AUTHORING_GUIDE_FOR_AI.md`: rules for generating DSL projects.
-- `docs/main_design/AI_GENERATION_WORKFLOW_SPEC.md`: generation and diagnosis workflow.
-- `docs/main_design/SAMPLE_PROJECT_FIXTURE_PLAN.md`: planned sample coverage.
-- `docs/main_design/SB3_REAL_EDITOR_VERIFICATION_SPEC.md`: manual Scratch/TurboWarp checks.
-- `docs/main_design/SB3_IMPORT_DESIGN_DRAFT.md`: Phase 8 design only.
-- `docs/main_design/OPTIONAL_FEATURES_DESIGN_DRAFT.md`: deferred compatibility work.
+## Core Architecture Invariants
 
-`scratch-editor/` (tag `v14.1.0`) and `scratch-audio/` (tag `v2.0.268`) are
-pinned upstream research checkouts and nested Git repositories. Treat them as
-read-only unless a task explicitly targets them.
-
-## Architecture and Invariants
-
-The Scratch-compatible DSL is the single persistent source of truth:
+The Scratch-compatible DSL is the persistent source of truth:
 
 ```text
 DSL
-  ├─ validate → Project/Runtime → headless/browser execution
+  ├─ validate → Project/Runtime → execution
   └─ validate → SB3 serializer → project.json + assets → .sb3
 ```
 
-Preserve these invariants:
-
 - Never generate SB3 from mutable Runtime state.
-- SB3 serialization accepts a validated `DslProject`; Runtime-only clones are never exported.
-- Do not hand-edit generated `project.json` or ZIP entries as the primary workflow. Edit DSL and regenerate.
-- IDs are project-wide stable identifiers. Never renumber them on each save.
+- Serialize only validated `DslProject` data; Runtime-only clones are not exported.
+- Edit DSL and regenerate. Do not treat generated `project.json` or ZIP contents as the authoring source.
+- Keep IDs stable and project-wide unique; never renumber on save.
 - Stage owns broadcast declarations. Stage variables/lists are global; Sprite variables/lists are local.
-- Unknown opcodes are retained with diagnostics rather than silently discarded. AI-authored new projects should not introduce unknown opcodes.
-- Validation, domain model, and Runtime stay independent of DOM, Canvas, Web Audio, and ZIP implementations.
-- Runtime imports only `RendererPort`, `InputPort`, and `RuntimeAudioPort`-style interfaces, not browser implementations.
-- Future SB3 import must preserve unknown blocks, mutation data, extensions, comments, monitors, and metadata through an opaque representation. Phase 8 code does not exist yet.
+- Preserve unknown opcodes with diagnostics; do not silently discard them. New AI-authored projects should use only registered, implemented opcodes.
+- Validation, model, and Runtime must remain independent of DOM, Canvas, Web Audio, and ZIP implementations.
+- Runtime depends on ports (`RendererPort`, `InputPort`, `RuntimeAudioPort`), not browser implementations.
+- Future SB3 import must preserve unknown blocks, mutations, extensions, comments, monitors, and metadata. Phase 8 is not implemented.
 
-## Project Structure
+## Validation and DSL Changes
 
-- `src/blocks/`: opcode metadata. P0 plus Phase 5 clone/procedure/pen/monitor opcodes are registered.
-- `src/cast/`: Scratch-compatible value conversion.
-- `src/model/`: stable IDs and Project/Target domain model.
-- `src/validation/`: structural, semantic, scope, and block-graph validation.
-- `src/runtime/`: scheduler, threads, block execution, clone/procedure/pen/monitor managers.
-- `src/render/`: renderer port, Canvas 2D implementation, skins, and coordinates.
-- `src/input/`: input port, DOM input manager, and key normalization.
-- `src/assets/`: asset records, loading, MD5, and reference/byte validation.
-- `src/audio/`: audio ports, sound manager/bank/player, and Web Audio adapter.
-- `src/sb3/`: project serializer, block normalization, asset/extension collection, ZIP writer, and packager.
-- `schemas/project.schema.json`: normative DSL JSON Schema.
-- `tests/fixtures/`: valid, invalid, runtime, render, Phase 5, and SB3 fixtures.
-- `tests/{validation,model,runtime,render,input,assets,audio,sb3,compatibility}/`: DOM-free Node tests.
-- `tests/e2e/`: Playwright tests and local browser harness.
-- `docs/main_design/`: current architecture, operation, roadmap, and future-design documents.
+`validateProject(value)` in `src/validation/projectValidator.ts` is the
+validation entry point. Structural errors stop semantic validation.
 
-## Validation Boundary
+When changing the DSL:
 
-`src/validation/projectValidator.ts::validateProject(value)` is the validation
-entry point:
+- Update both `schemas/project.schema.json` and the handwritten validator.
+- Add focused fixtures and tests.
+- Keep every diagnostic machine-readable with `code`, `severity`, `path`, `entityId`, `opcode`, and `message`; use `null` when unavailable.
+- Use dotted lowercase diagnostic codes, for example `block.reference-dangling`.
+- Take input, field, shadow, shape, and target rules from `src/blocks/opcodeMetadata.ts` or verified upstream sources. Do not infer them.
 
-1. Validate top-level structure and supported `schemaVersion` (`1.0.0`).
-2. Validate Stage/Sprite/block dictionary shapes.
-3. Stop before semantic validation if structural errors exist.
-4. Validate IDs, asset references, scope, comments, procedure mutation, and block graph semantics.
+For AI-generated projects:
 
-The JSON Schema is not loaded by the handwritten Runtime validator. When the
-DSL shape changes, update both `schemas/project.schema.json` and the handwritten
-validator, plus focused fixtures/tests.
-
-Every diagnostic must include `code`, `severity`, `path`, `entityId`, `opcode`,
-and `message`; use `null` when entity ID or opcode is unavailable. Diagnostic
-codes use dotted lowercase form, for example `block.reference-dangling`.
-
-Opcode input/field/shadow names must come from
-`src/blocks/opcodeMetadata.ts` or verified upstream sources. Do not infer them.
-Most advanced sensing and non-pen extension opcodes remain unsupported.
+- Start from `createMinimalProject()` where practical.
+- Keep `next`, `parent`, `inputs`, `fields`, `shadow`, `topLevel`, and `scripts` consistent.
+- Keep procedure mutation and call argument IDs consistent.
+- Compute `assetId` from bytes and use `md5ext = assetId.dataFormat`.
+- Validate before Runtime execution or SB3 packaging.
 
 ## SB3 Compatibility Boundary
 
-Phase 6 guarantees that representative generated archives:
+Phase 6 verifies packaging, asset/hash consistency, block normalization, and
+acceptance by `scratch-parser`.
 
-- contain `project.json` and every referenced costume/sound entry;
-- use stable block/variable/list/broadcast IDs;
-- normalize compact primitives, shadows, and procedure mutation;
-- reject missing assets and MD5 mismatches;
-- are accepted by `scratch-parser`.
+`scratch-parser` acceptance checks ZIP extraction and SB3 schema validity. It
+does not prove correct behavior in Scratch, TurboWarp, or
+`scratch-vm.loadProject`. Treat real-editor checks as separate manual evidence.
 
-`scratch-parser` acceptance verifies ZIP extraction and official SB3 schema
-validity. It does not prove that Scratch's editor, TurboWarp, or
-`scratch-vm.loadProject` will display and execute the project correctly.
-Scratch/TurboWarp upload and execution have not yet been performed by the
-automated suite. Follow
-`docs/main_design/SB3_REAL_EDITOR_VERIFICATION_SPEC.md` and report such checks
-as manual evidence, not automated test results.
+## Build and Test
 
-## AI DSL Authoring Rules
-
-For AI-generated projects, follow
-`docs/main_design/DSL_AUTHORING_GUIDE_FOR_AI.md`:
-
-- Start from `createMinimalProject()` where practical and mutate only what the project requires.
-- Edit DSL, not generated project.json/SB3.
-- Use only registered and implemented opcodes. Stop and split out a feature task if a required opcode is unavailable.
-- Keep `next`, `parent`, `inputs`, `fields`, `shadow`, `topLevel`, and `scripts` mutually consistent.
-- Keep procedure `proccode`, argument IDs/names/defaults, call input keys, and warp mutation consistent.
-- Compute `assetId` from bytes, use `md5ext = assetId.dataFormat`, and supply matching bytes to the packager.
-- Run validator, focused Runtime tests, browser tests when required, and SB3 checks in that order.
-
-Phase 7 fixture names and intended coverage are planned in
-`docs/main_design/SAMPLE_PROJECT_FIXTURE_PLAN.md`. The plan is not proof that
-those fixtures have been implemented.
-
-## Build and Test Commands
-
-Node.js 22+ runs TypeScript directly through type stripping. Relative ES module
-imports must include the `.ts` extension.
-
-Install dependencies:
+Node.js 22+ runs TypeScript through type stripping. Relative ESM imports must
+include `.ts`.
 
 ```powershell
 npm install
-```
-
-Run all DOM-free tests:
-
-```powershell
 npm test
-```
-
-If PowerShell blocks `npm.ps1`, use:
-
-```powershell
-npm.cmd test
-```
-
-Run browser integration tests:
-
-```powershell
 npm run test:e2e
-```
-
-Equivalent direct Playwright invocation:
-
-```powershell
-npx playwright test
-```
-
-Under PowerShell execution-policy restrictions use `npm.cmd`/`npx.cmd`.
-
-Check one TypeScript file:
-
-```powershell
 node --experimental-strip-types --check src/validation/projectValidator.ts
 ```
 
-The Phase 6 completion run on June 21, 2026 passed 131 Node tests and 9
-Playwright/Chromium tests. Treat this as historical evidence; rerun relevant
-checks after changes.
+If PowerShell blocks `npm.ps1` or `npx.ps1`, use `npm.cmd` / `npx.cmd`.
 
-## Testing Guidelines
+- Use `node:test` and `node:assert/strict` for DOM-free behavior.
+- Use Playwright only for browser, Canvas, DOM event, image decode, or Web Audio behavior.
+- Run focused tests while iterating and the relevant full suite before handoff.
+- Do not make external Scratch/TurboWarp site automation a normal test dependency.
 
-Use `node:test` and `node:assert/strict`. Add focused tests for every validation
-rule and DOM-free behavior. Keep coordinate conversion, key normalization,
-scheduler, serializer, and ZIP logic in Node tests.
+## Coding and Change Scope
 
-Use Playwright only for real browser, Canvas, DOM event, image decode, or Web
-Audio behavior. Do not make external Scratch/TurboWarp site automation a normal
-test dependency.
-
-Required rejection coverage includes dangling references, duplicate IDs, scope
-violations, graph cycles, malformed structures, unsupported versions, missing
-asset bytes, and asset hash mismatches.
-
-## Coding Style
-
-Use TypeScript, ES modules, four-space indentation, semicolons, and single
-quotes. Prefer explicit exported interfaces and pure functions.
-
-- `camelCase`: functions and variables.
-- `PascalCase`: classes and interfaces.
-- `UPPER_SNAKE_CASE`: immutable registries and constants.
-
-## Scope Exclusions
+- TypeScript, ES modules, four-space indentation, semicolons, single quotes.
+- Prefer explicit exported interfaces and pure functions.
+- Use `camelCase`, `PascalCase`, and `UPPER_SNAKE_CASE` conventionally.
+- Preserve unrelated user changes in a dirty worktree.
+- Keep each requested phase or feature as a scoped change.
 
 Unless explicitly requested, do not implement:
 
-- a Scratch-style block editor or full official GUI;
+- Scratch-style block editor or complete official GUI;
 - paint or sound editors;
-- Scratch account, cloud Runtime, online save, or sharing;
-- loudness or microphone support;
+- account, online sharing, or cloud Runtime;
+- loudness or microphone;
 - complete extension compatibility;
-- Phase 8 SB3 import;
-- Phase 9 pitch/pan, alpha collision, color touching, or corpus expansion.
+- Phase 8 import or Phase 9 compatibility features.
 
-Keeping cloud flags or unknown extension data for serialization is separate
-from implementing their Runtime behavior.
+## Git
 
-## Commit and Pull Request Guidelines
-
-History follows Conventional Commits, such as `feat:`, `docs:`, and
-`refactor:`. Keep commits scoped and imperative.
-
-Pull requests should state the affected phase, summary, compatibility changes,
-and exact test commands/results. Include screenshots only for visual changes.
+Use scoped Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`).
+PRs should state the affected phase, compatibility impact, and exact test
+commands/results. Include screenshots only for visual changes.
