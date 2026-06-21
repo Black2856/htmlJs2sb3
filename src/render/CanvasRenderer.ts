@@ -188,6 +188,11 @@ export class CanvasRenderer implements RendererPort {
         const scale = state.size / 100;
 
         ctx.save();
+        // Keep sprites (costume/paint and clones) crisp: disable bilinear
+        // smoothing so scaled bitmaps are not blurred. Scoped by save()/restore()
+        // (imageSmoothingEnabled is part of the canvas state), so it does not
+        // affect the 1:1 pen-layer composite or pen line/dot rendering.
+        ctx.imageSmoothingEnabled = false;
         ctx.translate(cx, cy);
 
         let flip = false;

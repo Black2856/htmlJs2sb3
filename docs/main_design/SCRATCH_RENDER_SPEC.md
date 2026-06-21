@@ -24,6 +24,8 @@
 
 `id`, `targetId`, `skinId`, `position`, `direction`, `scale`, `visible`, `rotationStyle`, `effects`, `layerOrder`。direction 90を右向きとし、all-aroundではCanvas回転角へ変換する。left-rightは左右反転、don't-rotateは無回転。
 
+スプライト（costume/paint・clone）描画は拡大時のぼやけを避けるため、image smoothingを無効化して描く（save/restoreで局所適用）。pen layerは対象外で、pen line/dotとpen layerの1:1合成はsmoothingを変えず従来どおりとする。
+
 ## Skin
 
 - BitmapSkin: decoded image、bitmapResolution、rotation center。
