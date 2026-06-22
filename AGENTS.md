@@ -62,8 +62,18 @@ When information conflicts, use this order:
 4. `AGENTS.md`.
 5. `CLAUDE.md` and historical notes.
 
-`scratch-editor/` and `scratch-audio/` are pinned, nested upstream research
-checkouts. Treat them as read-only unless a task explicitly targets them.
+`scratch-editor/`, `scratch-audio/`, and `scratch-vm/` are pinned, nested
+upstream research checkouts (gitignored via `/scratch-*/`; each kept under its
+own git). Treat them as read-only unless a task explicitly targets them.
+
+Canonical Scratch behavior comes from official Scratch v14.1.0
+(`scratch-editor/packages/scratch-vm/`). `scratch-vm/` is the TurboWarp fork and
+is **not** a primary source of truth. When the user verifies runtime behavior
+and confirms our implementation differs from the real Scratch spec, treat the
+TurboWarp `scratch-vm/` as the **secondary source of truth** for that
+investigation: use it to understand the algorithm, then reconcile against
+official v14.1.0 before changing anything. Record such differences and the
+adopted resolution in `docs/TURBOWARP_DIFF_AUDIT.md`.
 
 ## Core Architecture Invariants
 
