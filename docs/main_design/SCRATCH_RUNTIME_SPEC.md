@@ -23,7 +23,7 @@ primitiveは `(args, util)` 相当で呼び出す。`util` はtarget、thread、
 
 位置を変えるmotion block（`motion_movesteps`、`motion_gotoxy`、`motion_setx`、`motion_sety`、`motion_changexby`、`motion_changeyby`、将来のglide）は、公式VMの `RenderedTarget.setXY` 同様に `util.setXY(x, y)` を通る。`setXY` は次のように動く。
 
-- rendererが接続され `getFencedPosition` を持つ場合、保存前にfenced座標へ補正する（公式の `if (this.renderer)` 相当、fencing仕様はSCRATCH_RENDER_SPEC参照）。
+- rendererが接続され `getFencedPosition` を持つ場合、保存前にfenced座標へ補正する（公式の `if (this.renderer)` 相当）。
 - **headless（rendererなし）では補正せず生の座標を保存する**。これは公式VMと同じ振る舞いだが、結果としてheadless実行とrendererあり実行で最終座標が一致しない場合がある（例: 「x座標を300にする」はheadlessで300、rendererありで261付近）。headless unit testはこの素通しを前提に期待値を置く。
 - `motion_movesteps` のpen segmentはfencing後の着地点までを描く。
 - `motion_xposition`/`motion_yposition` reporterはfencing後の `target.x`/`target.y` を返す。
