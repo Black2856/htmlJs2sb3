@@ -12,7 +12,7 @@ import {loadWorkspaceProject, WorkspaceProjectError, repositoryRoot} from './wor
 // Local "real Scratch VM + renderer" preview: serves a minimal player page that
 // loads @scratch/scratch-vm + scratch-render (prebuilt browser UMD bundles) and
 // runs the project's exported .sb3 — i.e. the authoritative behaviour/visuals,
-// not our CanvasRenderer reimplementation. The same page is Playwright-drivable
+// not a self-made renderer. The same page is Playwright-drivable
 // for AI verification (window.vm is exposed). One long-running server is reused
 // across invocations; a second `preview` just reopens the browser.
 

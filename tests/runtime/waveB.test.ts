@@ -5,7 +5,7 @@ import type {DslBlock, DslProject} from '../../src/validation/projectValidator.t
 import {createProject} from '../../src/model/ProjectFactory.ts';
 import {Runtime} from '../../src/runtime/Runtime.ts';
 import type {InputPort, PointerTransition} from '../../src/input/InputPort.ts';
-import type {Bounds, DrawableState, DrawableTransform, RendererPort} from '../../src/render/RendererPort.ts';
+import type {Bounds, DrawableState, DrawableTransform, RendererPort} from '../../src/runtime/RendererPort.ts';
 import type {ClockPort, RandomPort} from '../../src/runtime/ports.ts';
 
 class AdvanceableClock implements ClockPort {

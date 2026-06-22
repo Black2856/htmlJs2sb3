@@ -6,7 +6,7 @@ import {
     computeLocalBounds,
     fencePosition,
     type LocalBounds
-} from '../../src/render/fencing.ts';
+} from '../../src/runtime/fencing.ts';
 
 // A small costume scaled up 4x: 18x28 image, centred rotation centre. This is
 // the full-feature-minimal-style glyph whose half-width is 36 (= 9 * 4), which

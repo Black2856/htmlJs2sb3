@@ -1,8 +1,8 @@
 /**
- * Stage/Canvas coordinate conversion helpers. Pure functions, no DOM
- * dependency, per SCRATCH_RENDER_SPEC.md: native Stage is 480x360 with the
- * Scratch origin at the center (x: -240..240, y: -180..180), while Canvas
- * pixel space has its origin at the top-left with y increasing downward.
+ * Stage coordinate helpers and constants. Pure functions, no DOM dependency.
+ * The native Stage is 480x360 with the Scratch origin at the center
+ * (x: -240..240, y: -180..180); canvas-pixel conversions (origin top-left,
+ * y down) are kept for any host that needs them.
  */
 
 export const STAGE_WIDTH = 480;

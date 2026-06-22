@@ -28,14 +28,14 @@ import {ProcedureManager} from './ProcedureManager.ts';
 import {PenManager} from './PenManager.ts';
 import {MonitorManager} from './MonitorManager.ts';
 import {startHats, type HatMatch} from './EventBus.ts';
-import type {RendererPort, DrawableState, MonitorView} from '../render/RendererPort.ts';
+import type {RendererPort, DrawableState, MonitorView} from './RendererPort.ts';
 import type {InputPort} from '../input/InputPort.ts';
 import type {RuntimeAudioPort} from '../audio/AudioPort.ts';
 
 /** Safety valve against pathological cross-thread cascades within one tick. */
 export const MAX_TICK_PASSES = 1000;
 
-/** Fixed placement state used for the Stage's own DrawableState (per SCRATCH_RENDER_SPEC: Stage has no coordinate/direction fields). */
+/** Fixed placement state used for the Stage's own DrawableState (the Stage has no coordinate/direction fields). */
 const STAGE_DRAWABLE_DEFAULTS = Object.freeze({
     x: 0,
     y: 0,

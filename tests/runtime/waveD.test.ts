@@ -5,10 +5,10 @@ import type {DslBlock, DslProject} from '../../src/validation/projectValidator.t
 import {createProject} from '../../src/model/ProjectFactory.ts';
 import {Runtime} from '../../src/runtime/Runtime.ts';
 import {PenManager} from '../../src/runtime/PenManager.ts';
-import {hsvToRgb, rgbaString} from '../../src/render/penColor.ts';
+import {hsvToRgb, rgbaString} from '../../src/runtime/penColor.ts';
 import type {ClockPort, LoudnessPort} from '../../src/runtime/ports.ts';
 import type {RuntimeAudioPort, RuntimeSoundPlayback} from '../../src/audio/AudioPort.ts';
-import type {RendererPort, DrawableState} from '../../src/render/RendererPort.ts';
+import type {RendererPort, DrawableState} from '../../src/runtime/RendererPort.ts';
 
 class AdvanceableClock implements ClockPort {
     ms = 0;

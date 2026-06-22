@@ -1,4 +1,4 @@
-import {STAGE_WIDTH, STAGE_HEIGHT} from '../render/coordinates.ts';
+import {STAGE_WIDTH, STAGE_HEIGHT} from './coordinates.ts';
 import {Cast} from '../cast/Cast.ts';
 import type {Runtime} from './Runtime.ts';
 

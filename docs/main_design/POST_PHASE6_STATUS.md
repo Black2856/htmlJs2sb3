@@ -1,5 +1,12 @@
 # Phase 6 完了時点の現状
 
+> **現状更新 (render方針変更):** 自作の Canvas 2D Renderer / Skin / Drawable と
+> その preview・E2E は削除した。視覚・音声・collision の正本は **実 Scratch VM
+> (`@scratch/scratch-vm` + `scratch-render`)** で、`npm run preview`（ブラウザ）/
+> `npm run shot`（Playwright screenshot + 状態JSON）が `.sb3` を実行して検証する。
+> 本リポジトリの Runtime は決定的ロジック中心で、`RendererPort` は fake port 用の
+> seam として残す。本書の Phase 3「Canvas Renderer」等の記述は歴史的経緯として残置。
+
 ## 目的
 
 Phase 0〜6で成立した機能、責務境界、保証範囲を固定する。本書はScratch完全互換を宣言するものではなく、次フェーズの判断基準である。

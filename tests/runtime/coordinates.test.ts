@@ -9,7 +9,7 @@ import {
     sortByLayer,
     STAGE_WIDTH,
     STAGE_HEIGHT
-} from '../../src/render/coordinates.ts';
+} from '../../src/runtime/coordinates.ts';
 
 test('scratchToCanvas maps the Scratch origin to the canvas center', () => {
     assert.deepEqual(scratchToCanvas(0, 0), {x: 240, y: 180});

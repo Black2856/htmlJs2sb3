@@ -6,7 +6,7 @@
  * owns the state the official VM keeps in a target's `Scratch.pen` custom
  * state, including duplicating it when a sprite is cloned.
  */
-import {hsvToRgb, rgbToHsv, parseHexColor, rgbaString} from '../render/penColor.ts';
+import {hsvToRgb, rgbToHsv, parseHexColor, rgbaString} from './penColor.ts';
 
 /**
  * Pen colour parameters (each 0..100), the source of truth behind

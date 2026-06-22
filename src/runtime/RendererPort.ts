@@ -73,14 +73,14 @@ export interface PenAttributes {
 }
 
 /**
- * Rendering seam between the headless Runtime and a concrete renderer
- * (e.g. CanvasRenderer). Runtime depends only on this interface, never on
- * any DOM/Canvas implementation, per Phase 3's architecture constraint.
+ * Optional rendering/query seam for the headless Runtime. There is no in-repo
+ * renderer (visuals run in the real Scratch VM); this interface is kept so
+ * tests can inject a fake port to exercise renderer-dependent behaviour
+ * (fencing, bounds, pick, touching, pen geometry). Runtime never depends on a
+ * DOM/Canvas implementation.
  *
- * The pen and target-release methods are optional: a headless Runtime with no
- * renderer (or a renderer that does not implement them) simply skips
- * rasterisation while PenManager still tracks pen state. All pen coordinates
- * are in Scratch stage space; the renderer converts to canvas pixels.
+ * All methods are optional: with no port attached, the Runtime skips them and
+ * PenManager still tracks pen state. Pen coordinates are in Scratch stage space.
  */
 export interface RendererPort {
     renderDrawables(states: DrawableState[]): void;

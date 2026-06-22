@@ -1,7 +1,7 @@
 import {Cast, LIST_ALL, LIST_INVALID} from '../cast/Cast.ts';
 import {MathUtil} from '../cast/MathUtil.ts';
-import {keepInFence} from '../render/fencing.ts';
-import {parseHexColor} from '../render/penColor.ts';
+import {keepInFence} from './fencing.ts';
+import {parseHexColor} from './penColor.ts';
 import {BUBBLE_TEXT_LIMIT} from './BubbleManager.ts';
 import {Clone} from '../model/Clone.ts';
 import type {Stage} from '../model/Stage.ts';
@@ -9,7 +9,7 @@ import type {Sprite} from '../model/Sprite.ts';
 import {resolveTargetXY, type Point} from './TargetResolver.ts';
 import type {Thread} from './Thread.ts';
 import type {BlockUtil, PrimitiveValue} from './BlockRunner.ts';
-import {STAGE_WIDTH, STAGE_HEIGHT} from '../render/coordinates.ts';
+import {STAGE_WIDTH, STAGE_HEIGHT} from './coordinates.ts';
 
 export type CommandPrimitive = (util: BlockUtil) => void | PromiseLike<unknown>;
 export type ReporterPrimitive = (util: BlockUtil) => PrimitiveValue;

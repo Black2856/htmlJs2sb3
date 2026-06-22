@@ -8,8 +8,7 @@
  * the transformed bounding box, matching scratch-render's getFastBounds()
  * (no silhouette tightening). This is why "set x to 300" lands near 261 for a
  * small, large-scaled costume: the limit depends on the drawable's size,
- * rotation centre, direction and costume dimensions, per SCRATCH_RENDER_SPEC
- * (P0: transformed bounding box).
+ * rotation centre, direction and costume dimensions.
  */
 import {STAGE_WIDTH, STAGE_HEIGHT, directionToRadians} from './coordinates.ts';
 
@@ -34,9 +33,9 @@ const facesLeft = (direction: number): boolean => {
 
 /**
  * Computes the fast (rectangle) AABB of a transformed costume image as offsets
- * from the sprite's position, in Scratch coordinates. Uses the same transform
- * order as CanvasRenderer.paintDrawable (scale → rotate → flip), then converts
- * the canvas-space (y-down) corners to Scratch space (y-up).
+ * from the sprite's position, in Scratch coordinates. Uses the standard
+ * transform order (scale → rotate → flip), then converts the canvas-space
+ * (y-down) corners to Scratch space (y-up).
  */
 export const computeLocalBounds = (
     imageWidth: number,
