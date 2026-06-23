@@ -4,7 +4,9 @@
 
 本書でPhase 9候補としていたpitch/pan、alpha collision、color touchingは、
 `manual-verification`のunsupported解消要件によりPhase 7.2へ昇格した。
-実装設計の正本は[`../phase7.2/README.md`](../phase7.2/README.md)以下とする。
+実装設計の正本は[`SCRATCH_COMPAT_OPCODE_DESIGN.md`](./SCRATCH_COMPAT_OPCODE_DESIGN.md)、
+[`SCRATCH_COMPAT_FEATURE_MATRIX.md`](./SCRATCH_COMPAT_FEATURE_MATRIX.md)、
+[`SCRATCH_COMPAT_SOURCE_AUDIT.md`](./SCRATCH_COMPAT_SOURCE_AUDIT.md)とする。
 
 本書はPhase 7.2完了後の精度・性能改善と、Phase 8/9候補の履歴資料として維持する。
 
