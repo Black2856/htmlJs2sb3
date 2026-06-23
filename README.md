@@ -99,20 +99,27 @@ ZIPは編集せず、変更はDSLを編集して再生成します。
 ## .sb3 を読み込む（import / Phase 8）
 
 ```powershell
-npm run import -- <file.sb3> [--strict]
+npm run import -- <file.sb3> [--strict]            # 読み込んで要約を表示
+npm run import -- <file.sb3> --out <name>          # workspace/<name>/ に編集可能な作品を生成
 ```
 
 既存の `.sb3`（実Scratch/TurboWarpが保存したものを含む）を読み込み、`DslProject`
 へ変換して読み込み結果の要約（target/block/asset数、extension、診断内訳）を表示します。
-出力（export）の逆方向の経路で、ファイルは書き換えません。
+出力（export）の逆方向の経路です。
+
+`--out <name>` を付けると、import した作品を **`workspace/<name>/` の編集可能な作品**として
+書き出します（`project.ts` + `assets/` + `assets.json` + `output/`、既存ディレクトリは上書き
+しません）。そのまま `npm run preview -- <name>` で実行、`npm run sb3 -- <name>` で再エクスポート
+できます。実 Scratch 作品 → DSL 作品 → `.sb3` の往復が成立します（90 MiB 級の実プロジェクトでも
+再 export が `scratch-parser` を通過）。
 
 - ZIP展開はDEFLATE対応で、entry数・サイズ上限、path traversal、CRC不一致などを拒否します。
 - compact primitive・input descriptor・mutation・未知opcode・未知フィールドを復元/保持し、
   自前 export の往復では `project.json` が一致します。
+- 検証は実Scratchの受理範囲に合わせており（id文字種/スコープ、procedure引数、comment、
+  control_stop、standalone shadow）、実プロジェクトもそのまま読み込めます。
 - `--strict` は保持可能な不整合もerror扱い、既定の `compatibility` はwarningで継続します。
-- DSLモデルはScratch全体より狭いため（id文字種、Phase 7.2範囲のopcode metadata、cloud変数
-  など）、大型の実プロジェクトは構造としては読み込めても、厳密なDSL検証では差分が出る場合が
-  あります。診断はその差分を機械可読に列挙します。
+- 表現しきれない差分（cloud変数は通常変数化、未対応opcodeの入力は警告）は診断に機械可読で出ます。
 
 ## 新しい作品を追加する手順
 
