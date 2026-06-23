@@ -114,6 +114,43 @@ node --experimental-strip-types --check src/sb3/import/importProject.ts
 npm run sb3 -- full-feature-minimal        # export 側の非回帰（import は export を壊さない）
 ```
 
-## 次の一手
-W1（`inflate.ts` + `unzipSafe.ts`）から着手するのが妥当。ただし **G3（corpus のライセンス/
-保管）はユーザー判断待ち**で、これが決まるまで外部 SB3 を test 依存に加えない。
+## 9. 実装状況（W1〜W4 完了）
+
+`feature/phase8-sb3-import` で実装済み（`src/sb3/import/`、`tools/importSb3.ts`、`npm run import`）:
+
+- W1 `inflate.ts` / `unzipSafe.ts`：DEFLATE 対応の安全展開（上限・traversal・CRC）。
+- W2 `parseProject.ts` / `rawTypes.ts` / `diagnostics.ts`：raw parse と strict/compatibility 診断。
+- W3a `primitiveExpand` / `inputRestore` / `mutationParse` / `blocksToDsl`：block グラフ再構築。
+- W3b `rawToDsl` / `importProject`：`DslProject` 組み立て + `validateProject` + bytes 境界。
+- W4：未知 block フィールドの opaque 保持（`DslBlock.opaque`、schema 同時更新）と再 export マージ。
+
+ゲート達成：自前 export の `project.json` 往復一致、未知 opcode/field/mutation の無損失、
+`importSb3` による実プロジェクトの構造ロード。`[tag, null]` 空スロットも空入力として扱う。
+
+## 10. Phase 9 へ繰り越し：実プロジェクト互換（FNF 実測根拠）
+
+実プロジェクト `[☁leaderboard] Friday Night Funkin v1.0.sb3`（89.7 MiB）を `npm run import`
+で検証した結果：**import パイプラインは 16 targets / 25,286 blocks / 857 assets / pen を
+約 0.5 秒で組み立て成功**。import 側の取りこぼしは 0。
+
+一方 `validateProject`（DSL モデルは意図的に Scratch 全体より狭い）は 1165 errors を返す。
+これは import のバグではなく、互換範囲を広げる Phase 9 タスクの根拠：
+
+| 件数 | コード | 内容 |
+|---|---|---|
+| 710 | `id.invalid` | 実 Scratch の変数/list id が DSL の id 文字種・長さ規則より広い（最優先）|
+| 254 | `procedure.definition-missing` | カスタムブロックの定義照合 |
+| 75 | `id.duplicate` | Scratch が許す id 再利用 |
+| 64 | `comment.block-dangling` | コメント参照 |
+| 37 | `procedure.invalid-arguments` | 手続き引数 |
+| 25 | `block.next-not-allowed` / `script.root-invalid` | グラフ形状規則 |
+| 10 | `sb3.variable.cloud-unsupported` | cloud 変数は DSL で表現不可 |
+
+warning の `opcode.input-unknown`（2152）は metadata が Phase 7.2 範囲のため（ロード阻害せず）。
+
+これらの厳格 DSL 検証を実プロジェクトで通す互換拡張は **Phase 9** で扱う（`id.invalid` の
+緩和だけで 1165 中 710 を解消）。Phase 8 本体（自前往復 + opaque 保持）はこの繰り越しと独立に
+完成しており、既存機能はこの未対応に依存しない。
+
+残課題：G3（外部 corpus のライセンス/保管）は未判断のままで、自前 export の self round-trip を
+一次 corpus とする。target/project レベルの未知フィールドと meta の再 export 保持も Phase 9 候補。

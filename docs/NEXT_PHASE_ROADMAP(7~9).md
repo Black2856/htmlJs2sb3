@@ -107,8 +107,13 @@ Phase 8ではZIP、project.json、asset、block graphをDSLへ変換するimport
 候補は次のとおり。
 
 - Phase 7.2で残ったpitch/pan、collision、color touchingの精度・性能改善。
-- SB3 import対応範囲の拡大。
-- unknown block preservationの強化。
+- SB3 import対応範囲の拡大：Phase 8 の import パイプラインで実プロジェクトを構造ロード
+  できることは確認済み（FNF 89.7MiB を 25,286 blocks 含め組み立て成功）。実プロジェクトを
+  厳密DSL検証まで通す互換拡張を Phase 9 で扱う。最優先は id 文字種の緩和（実 Scratch の
+  変数/list id を受理。FNF の 1165 検証エラー中 710 を解消）、次いで procedure 照合、
+  id 再利用、comment 参照、cloud 変数の扱い。根拠と内訳は
+  [`SB3_IMPORT_IMPLEMENTATION_PLAN.md`](./main_design/SB3_IMPORT_IMPLEMENTATION_PLAN.md) §10。
+- unknown block preservationの強化（target/project レベルの未知フィールド・meta の再 export 保持）。
 - round-trip corpusの拡充。
 - TurboWarp互換確認。
 - Scratch公式との差分テスト。
