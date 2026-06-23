@@ -70,6 +70,11 @@ workspace/<name>/
 - 1 作品 = 1 ディレクトリ。素材はその作品の `assets/` に同梱（共有プールなし）。
 - 共通の Runtime/SB3 ロジックを workspace 側へ持ち込まない（それはリポジトリの `src/` の責務）。
 
+> **実例（検証済み）:** `docs/templates/SPLIT_PROJECT_EXAMPLE.md`。manual-verification を
+> この方針で分割し、分割前後で生成 `project.json` が MD5 一致（挙動不変）になることを確認した
+> worked example。責務分割表・スプライトモジュールの `build<Sprite>(): Builder` 形・import 深度・
+> 回帰確認レシピを含む。
+
 ### main（`project.ts`）の形
 
 ```ts
